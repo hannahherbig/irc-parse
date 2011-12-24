@@ -75,6 +75,10 @@ function Client(socket, server) {
 }
 util.inherits(Client, events.EventEmitter);
 
+Client.prototype.send = function (line) {
+  this.socket.write(line + "\r\n");
+}
+
 exports.numerics = numerics;
 exports.parse = parse;
 exports.Server = Server;
