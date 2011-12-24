@@ -1,0 +1,6 @@
+{ "author": "Andrew Herbig <goforit7arh@gmail.com>"
+, "name": "irc-parse"
+, "description": "IRC parsing utilities including numerics and a base server"
+, "version": "0.0.1"
+, "main": "index"
+, "engines": { "node": "*" } }
