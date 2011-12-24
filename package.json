@@ -3,4 +3,7 @@
 , "description": "IRC parsing utilities including numerics and a base server"
 , "version": "0.0.1"
 , "main": "index"
-, "engines": { "node": "*" } }
+, "engines": { "node": "*" }
+, "homepage": "https://github.com/andrew12/irc-parse"
+, "repository": { "type": "git"
+                , "url": "git://github.com/andrew12/irc-parse.git" } }
