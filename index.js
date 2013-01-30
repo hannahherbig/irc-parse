@@ -1,85 +1,43 @@
-var net = require('net');
-var events = require('events');
-var util = require('util');
+var SPACE = /\s+/;
+var SPACECOLON = /\s+:/;
 
-var numerics = require('./numerics');
-
-function parse(str) {
-  var origin = null;
-  var command = null;
-  var args = [];
+// Message has the following properties:
+// - original - string - the original string
+// - origin - string
+// - command - string
+// - args - array of strings
+function Message (str) {
+  if (!(this instanceof Message))
+    return new Message(str);
+  
   var i;
-
+  
+  this.original = str;
+  
   // pull out the origin if there is one
   if (str[0] === ':') {
-    i = str.indexOf(' ');
-    origin = str.slice(1, i);
+    i = str.search(SPACE);
+    this.origin = str.slice(1, i);
     str = str.slice(i + 1);
-  }
-
-  // pull out the command
-  i = str.indexOf(' ');
-  command = str.slice(0, i);
-  str = str.slice(i + 1);
-
-  // get the args
-  i = str.indexOf(' :');
-  if (i !== -1) {
-    args = str.slice(0, i).split(/\s+/);
-    args.push(str.slice(i + 2));
   } else
-    args = str.split(/\s+/);
-
-  args.origin = origin;
-  args.command = command;
-
-  return args;
-}
-
-function lineBuffer(callback) {
-  var buffer = '';
-  return function(data) {
-    var i;
-    buffer += data;
-    while((i = buffer.indexOf('\n')) != -1) {
-      callback(buffer.slice(0, i).trim());
-      buffer = buffer.slice(i + 1);
-    }
+    this.origin = null;
+  
+  // pull out the command
+  i = str.search(SPACE);
+  if (i === -1) {
+    this.command = str;
+    this.args = [];
+  } else {
+    this.command = str.slice(0, i);
+    str = str.slice(i + 1);
+  
+    // get the args
+    i = str.search(SPACECOLON);
+    if (i !== -1)
+      this.args = str.slice(0, i).split(SPACE).concat(str.slice(i + 2));
+    else
+      this.args = str.split(SPACE);
   }
 }
 
-function Server(clientListener) {
-  net.Server.call(this);
-
-  if (clientListener)
-    this.on('client', clientListener);
-
-  this.on('connection', function (socket) {
-    this.emit('client', new Client(socket, this));
-  });
-}
-util.inherits(Server, net.Server);
-
-function Client(socket, server) {
-  this.socket = socket;
-  this.server = server;
-  socket.on('data', lineBuffer(function (line) {
-    this.emit('raw', line);
-  }.bind(this)));
-
-  this.on('raw', function (line) {
-    var args = parse(line);
-    this.emit('command', args);
-    this.emit(args.command, args);
-  });
-}
-util.inherits(Client, events.EventEmitter);
-
-Client.prototype.send = function (line) {
-  this.socket.write(line + "\r\n");
-}
-
-exports.numerics = numerics;
-exports.parse = parse;
-exports.Server = Server;
-exports.Client = Client;
+module.exports = Message;

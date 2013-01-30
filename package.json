@@ -1,9 +1,19 @@
-{ "author": "Andrew Herbig <goforit7arh@gmail.com>"
-, "name": "irc-parse"
-, "description": "IRC parsing utilities including numerics and a base server"
-, "version": "0.0.2"
-, "main": "index"
-, "engines": { "node": "*" }
-, "homepage": "https://github.com/andrew12/irc-parse"
-, "repository": { "type": "git"
-                , "url": "git://github.com/andrew12/irc-parse.git" } }
+{
+  "name": "irc-parse",
+  "description": "Parse IRC messages. That's all.",
+  "version": "0.1.0",
+  "main": "index",
+  "engines": {
+    "node": "~0.8.16"
+  },
+  "devDependencies": {
+    "expresso": "~0.9.0"
+  },
+  "homepage": "https://github.com/andrew12/irc-parse",
+  "bugs": "https://github.com/andrew12/irc-parse/issues",
+  "author": "Andrew Herbig <notandrewherbig@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andrew12/irc-parse.git"
+  }
+}
