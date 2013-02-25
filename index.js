@@ -1,43 +1,76 @@
-var SPACE = /\s+/;
-var SPACECOLON = /\s+:/;
+var strsplit = require('strsplit')
 
-// Message has the following properties:
-// - original - string - the original string
-// - origin - string
-// - command - string
-// - args - array of strings
-function Message (str) {
-  if (!(this instanceof Message))
-    return new Message(str);
+var SPACE = /\s+/;
+
+function parse(str) {
+  var msg = {};
   
-  var i;
+  if (str[0] === '@') {
+    var m = strsplit(str.slice(1), SPACE, 2);
+    str = m[1];
+    msg.tags = {};
+    strsplit(m[0], ';').forEach(function (t) {
+      var m = strsplit(t, '=', 2);
+      msg.tags[m[0]] = m.length > 1 ? m[1] : true;
+    });
+  }
   
-  this.original = str;
-  
-  // pull out the origin if there is one
   if (str[0] === ':') {
-    i = str.search(SPACE);
-    this.origin = str.slice(1, i);
-    str = str.slice(i + 1);
-  } else
-    this.origin = null;
+    var m = strsplit(str.slice(1), SPACE, 2);
+    str = m[1];
+    msg.prefix = m[0];
+  }
   
-  // pull out the command
-  i = str.search(SPACE);
-  if (i === -1) {
-    this.command = str;
-    this.args = [];
-  } else {
-    this.command = str.slice(0, i);
-    str = str.slice(i + 1);
+  var m = strsplit(str, SPACE, 2);
+  str = m[1];
+  msg.command = m[0];
   
-    // get the args
-    i = str.search(SPACECOLON);
-    if (i !== -1)
-      this.args = str.slice(0, i).split(SPACE).concat(str.slice(i + 2));
-    else
-      this.args = str.split(SPACE);
+  msg.params = [];
+  
+  while (str) {
+    if (str[0] === ':') {
+      msg.params.push(str.slice(1));
+      str = '';
+    } else {
+      var m = strsplit(str, SPACE, 2);
+      str = m[1];
+      msg.params.push(m[0]);
+    }
+  }
+  
+  return msg;
+}
+
+function serialize(msg) {
+  if (msg && msg.hasOwnProperty('command')) {
+    var str = '';
+    if (msg.tags && Object.keys(msg.tags).length > 0)
+      str += '@' + Object.keys(msg.tags).map(function (key) {
+        return msg.tags[key] === true ? key : key + '=' + msg.tags[key];
+      }).join(';') + ' ';
+  
+    if (msg.prefix)
+      str += ':' + msg.prefix + ' ';
+  
+    str += msg.command;
+  
+    if (msg.hasOwnProperty('params')) {
+      var params = msg.params.slice();
+      if (params.length > 0) {
+        var trail = params.pop();
+        if (trail[0] === ':' || SPACE.test(trail) || trail.length === 0)
+          trail = ':' + trail;
+        params.push(trail);
+        str += ' ' + params.join(' ');
+      }
+    }
+  
+    return str;
   }
 }
 
-module.exports = Message;
+parse.parse = parse;
+parse.serialize = serialize;
+parse.SPACE = SPACE;
+
+module.exports = parse;
